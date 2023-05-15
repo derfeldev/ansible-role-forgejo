@@ -1,0 +1,46 @@
+---
+
+- name: Ensure Forgejo paths exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+  with_items:
+    - "{{ forgejo_base_path }}"
+    - "{{ forgejo_data_dir_path }}"
+    - "{{ forgejo_config_dir_path }}"
+
+- name: Ensure Forgejo support files created
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/{{ item }}.j2"
+    dest: "{{ forgejo_base_path }}/{{ item }}"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+    mode: 0640
+  with_items:
+    - env
+    - labels
+
+- name: Ensure Forgejo container image is pulled
+  community.docker.docker_image:
+    name: "{{ forgejo_container_image }}"
+    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+    force_source: "{{ forgejo_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else forgejo_container_image_force_pull }}"
+  register: result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: result is not failed
+
+- name: Ensure Forgejo container network is created
+  community.general.docker_network:
+    name: "{{ forgejo_container_network }}"
+    driver: bridge
+
+- name: Ensure Forgejo systemd service installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/forgejo.service.j2"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ forgejo_identifier }}.service"
+    mode: 0640

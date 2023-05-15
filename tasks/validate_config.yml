@@ -1,0 +1,34 @@
+---
+
+- name: Fail if required Forgejo settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) for using this role.
+  when: "vars[item] == ''"
+  with_items:
+    - forgejo_hostname
+    - forgejo_uid
+    - forgejo_gid
+    - forgejo_config_database_hostname
+    - forgejo_config_database_username
+    - forgejo_config_database_password
+
+- when: forgejo_container_labels_traefik_enabled | bool
+  block:
+    - name: Fail if required Forgejo Traefik settings not defined
+      ansible.builtin.fail:
+        msg: >-
+          You need to define a required configuration setting (`{{ item }}`).
+      when: "vars[item] == ''"
+      with_items:
+        - forgejo_container_labels_traefik_hostname
+        - forgejo_container_labels_traefik_path_prefix
+
+    # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
+    # Knowing that `forgejo_container_labels_traefik_path_prefix` does not end with a slash
+    # ensures we know how to set these routes up without having to do "does it end with a slash" checks elsewhere.
+    - name: Fail if forgejo_container_labels_traefik_path_prefix ends with a slash
+      ansible.builtin.fail:
+        msg: >-
+          forgejo_container_labels_traefik_path_prefix (`{{ forgejo_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/forgejo`).
+      when: "forgejo_container_labels_traefik_path_prefix != '/' and forgejo_container_labels_traefik_path_prefix[-1] == '/'"

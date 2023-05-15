@@ -1,0 +1,25 @@
+---
+
+- name: Check existence of Forgejo systemd service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/{{ forgejo_identifier }}.service"
+  register: forgejo_service_stat
+
+- when: forgejo_service_stat.stat.exists | bool
+  block:
+    - name: Ensure Forgejo systemd service is stopped
+      ansible.builtin.service:
+        name: "{{ forgejo_identifier }}"
+        state: stopped
+        enabled: false
+        daemon_reload: true
+
+    - name: Ensure Forgejo systemd service does not exists
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/{{ forgejo_identifier }}.service"
+        state: absent
+
+    - name: Ensure Forgejo path doesn't exist
+      ansible.builtin.file:
+        path: "{{ forgejo_base_path }}"
+        state: absent

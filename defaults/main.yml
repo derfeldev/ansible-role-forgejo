@@ -1,0 +1,174 @@
+---
+
+forgejo_enabled: true
+
+forgejo_version: 1.19.3-0
+
+forgejo_identifier: forgejo
+
+forgejo_scheme: https
+
+# The fully-qualified name of your Forgejo server (e.g. `forgejo.example.com`)
+forgejo_hostname: ''
+
+forgejo_path_prefix: /
+
+forgejo_uid: ''
+forgejo_gid: ''
+
+forgejo_container_image: "{{ forgejo_container_image_registry_prefix }}forgejo/forgejo:{{ forgejo_container_image_tag }}"
+forgejo_container_image_tag: "{{ forgejo_version }}-rootless"
+forgejo_container_image_force_pull: "{{ forgejo_container_image.endswith(':latest') }}"
+forgejo_container_image_registry_prefix: codeberg.org/
+
+forgejo_base_path: "/{{ forgejo_identifier }}"
+forgejo_data_dir_path: "{{ forgejo_base_path }}/data"
+forgejo_config_dir_path: "{{ forgejo_base_path }}/config"
+
+forgejo_ssh_port: 22
+
+forgejo_http_bind_port: ''
+forgejo_ssh_bind_port: "{{ forgejo_ssh_port }}"
+
+forgejo_systemd_required_systemd_services_list: ['docker.service']
+
+forgejo_config_database_type: postgres
+forgejo_config_database_hostname: ''
+forgejo_config_database_port: 5432
+forgejo_config_database_name: forgejo
+forgejo_config_database_username: ''
+forgejo_config_database_password: ''
+
+forgejo_config_root_url: "{{ forgejo_scheme }}://{{ forgejo_hostname }}{{ forgejo_path_prefix }}"
+
+# Controls the RUN_USER configuration setting (`FORGEJO____RUN_USER` environment variable).
+#
+# This defaults to `git` in the upstream configuration.
+#
+# On startup, Forgejo checks if the resolved username for the user it works with matches the RUN_USER.
+#
+# Because we run the container with a custom user (forgejo_uid),
+# and not with uid=1000 matching the git user and inside the container,
+# unless we unset this, we'd get an error message:
+# > `Expect user 'git' but current user is: `
+# The relevant check is here: https://codeberg.org/forgejo/forgejo/src/commit/adb8c085c5269e9fd3c7b80a8c4989dfd4ccb1da/modules/setting/setting.go#L279-L282
+#
+# Unsetting this to an empty string makes it match. Unless you forgejo_uid accidentally hits some other user that is part of the container's /etc/passwd file.
+forgejo_config_run_user: "{{ 'git' if forgejo_uid | string == '1000' else '' }}"
+
+# forgejo_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `forgejo_container_labels_additional_labels`.
+forgejo_container_labels_traefik_enabled: true
+forgejo_container_labels_traefik_docker_network: ''
+forgejo_container_labels_traefik_hostname: "{{ forgejo_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/forgejo`).
+forgejo_container_labels_traefik_path_prefix: "{{ forgejo_path_prefix }}"
+forgejo_container_labels_traefik_rule: "Host(`{{ forgejo_container_labels_traefik_hostname }}`){% if forgejo_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ forgejo_container_labels_traefik_path_prefix | quote }}`){% endif %}"
+forgejo_container_labels_traefik_priority: 0
+forgejo_container_labels_traefik_entrypoints: web-secure
+forgejo_container_labels_traefik_tls: "{{ forgejo_container_labels_traefik_entrypoints != 'web' }}"
+forgejo_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Controls which additional headers to attach to all HTTP requests.
+# To add your own custom request headers, use `forgejo_container_labels_traefik_additional_response_headers_custom`
+forgejo_container_labels_traefik_additional_request_headers: "{{ forgejo_container_labels_traefik_additional_request_headers_auto | combine(forgejo_container_labels_traefik_additional_request_headers_custom) }}"
+forgejo_container_labels_traefik_additional_request_headers_auto: |
+  {{
+    {}
+    | combine ({'X-Script-Name': forgejo_path_prefix} if forgejo_path_prefix != '/' else {})
+  }}
+forgejo_container_labels_traefik_additional_request_headers_custom: {}
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own custom response headers, use `forgejo_container_labels_traefik_additional_response_headers_custom`
+forgejo_container_labels_traefik_additional_response_headers: "{{ forgejo_container_labels_traefik_additional_response_headers_auto | combine(forgejo_container_labels_traefik_additional_response_headers_custom) }}"
+forgejo_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': forgejo_http_header_xss_protection} if forgejo_http_header_xss_protection else {})
+    | combine ({'X-Frame-Options': forgejo_http_header_frame_options} if forgejo_http_header_frame_options else {})
+    | combine ({'X-Content-Type-Options': forgejo_http_header_content_type_options} if forgejo_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': forgejo_http_header_content_security_policy} if forgejo_http_header_content_security_policy else {})
+    | combine ({'Permission-Policy': forgejo_http_header_content_permission_policy} if forgejo_http_header_content_permission_policy else {})
+    | combine ({'Strict-Transport-Security': forgejo_http_header_strict_transport_security} if forgejo_http_header_strict_transport_security and forgejo_container_labels_traefik_tls else {})
+  }}
+forgejo_container_labels_traefik_additional_response_headers_custom: {}
+
+# forgejo_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `templates/labels.j2` for details.
+#
+# Example:
+# forgejo_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+forgejo_container_labels_additional_labels: ''
+
+# forgejo_container_additional_environment_variables contains a multiline string with additional environment variables to pass to the container.
+#
+# Example:
+# forgejo_container_additional_environment_variables: |
+#   VAR=1
+#   ANOTHER=value
+forgejo_container_additional_environment_variables: ''
+
+forgejo_container_network: "{{ forgejo_identifier }}"
+
+# A list of additional container networks that the container would be connected to.
+# The playbook does not create these networks, so make sure they already exist.
+forgejo_container_additional_networks: []
+
+# Additional environment variables.
+forgejo_environment_variables_additional_variables: ''
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+forgejo_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Frame-Options` header which controls whether framing can happen.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+forgejo_http_header_frame_options: SAMEORIGIN
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+forgejo_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+forgejo_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permission-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
+forgejo_http_header_content_permission_policy: "{{ 'interest-cohort=()' if forgejo_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+forgejo_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if forgejo_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `forgejo_content_permission_policy`
+forgejo_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `forgejo_http_header_strict_transport_security`
+forgejo_hsts_preload_enabled: false
