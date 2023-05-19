@@ -1,10 +1,9 @@
 galaxy_info:
   author: Pavel D.
   company: DIMOV
-  description: Ansible role to install a Forgejo.
   role_name: forgejo
   namespace: mash
-  description: Forgejo
+  description: Ansible role to install a Forgejo.
   platforms:
     - name: Debian
       versions:
