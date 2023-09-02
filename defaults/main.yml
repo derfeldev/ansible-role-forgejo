@@ -2,7 +2,7 @@
 
 forgejo_enabled: true
 
-forgejo_version: 1.20.1-0
+forgejo_version: 1.20.3-0
 
 forgejo_identifier: forgejo
 
