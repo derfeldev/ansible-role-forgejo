@@ -29,8 +29,8 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% endif %}
 			--env-file={{ forgejo_base_path }}/env \
 			--label-file={{ forgejo_base_path }}/labels \
-			--mount type=bind,src={{ forgejo_data_dir_path }},dst=/var/lib/forgejo \
-			--mount type=bind,src={{ forgejo_config_dir_path }},dst=/etc/forgejo \
+			--mount type=bind,src={{ forgejo_data_dir_path }},dst=/var/lib/gitea \
+			--mount type=bind,src={{ forgejo_config_dir_path }},dst=/etc/gitea \
 			--tmpfs=/tmp:rw,noexec,nosuid,size=128m \
 			{{ forgejo_container_image }}
 
