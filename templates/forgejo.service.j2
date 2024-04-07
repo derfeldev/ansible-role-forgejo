@@ -27,6 +27,9 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% if forgejo_ssh_bind_port != '' %}
 			-p {{ forgejo_ssh_bind_port }}:2222 \
 			{% endif %}
+   			{% if forgejo_container_add_host_domain_name %}
+			--add-host {{ forgejo_container_add_host_domain_name }}:{{ forgejo_container_add_host_domain_ip_address }} \
+			{% endif %}
 			--env-file={{ forgejo_base_path }}/env \
 			--label-file={{ forgejo_base_path }}/labels \
 			--mount type=bind,src={{ forgejo_data_dir_path }},dst=/var/lib/gitea \
