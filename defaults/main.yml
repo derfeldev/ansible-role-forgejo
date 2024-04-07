@@ -58,6 +58,21 @@ forgejo_config_root_url: "{{ forgejo_scheme }}://{{ forgejo_hostname }}{{ forgej
 # Unsetting this to an empty string makes it match. Unless you forgejo_uid accidentally hits some other user that is part of the container's /etc/passwd file.
 forgejo_config_run_user: "{{ 'git' if forgejo_uid | string == '1000' else '' }}"
 
+# When integrating Forgejo with Woodpecker CI, and if Woodpecker is
+# served under a subpath (e.g. `https://forgejo.host/ci`), it is
+# necessary to use Docker's `--add-host` option to point Forgejo to
+# the external host IP, so that webhook calls to Woodpecker can work.
+#
+# For example:
+#
+#  forgejo_container_add_host_domain_name: "{{ devture_woodpecker_ci_server_hostname }}"
+#  forgejo_container_add_host_domain_ip_address: "{{ ansible_host }}"
+#
+# Don't forget to also update `webhook.ALLOWED_HOST_LIST` on Forgejo's
+# app.ini config file.
+forgejo_container_add_host_domain_name: ''
+forgejo_container_add_host_domain_ip_address: ''
+ 
 # forgejo_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
 # See `templates/labels.j2` for details.
 #
