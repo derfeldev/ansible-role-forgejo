@@ -3,6 +3,9 @@
 	"extends": [
 		"config:base"
 	],
+	"osvVulnerabilityAlerts": true,
+	"dependencyDashboardOSVVulnerabilitySummary": "all",
+	"addLabels": ["renovate","{{{manager}}}"],
 	"regexManagers": [
 		{
 			"fileMatch": ["defaults/main.yml$"],
