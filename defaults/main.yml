@@ -134,7 +134,10 @@ forgejo_container_network: "{{ forgejo_identifier }}"
 
 # A list of additional container networks that the container would be connected to.
 # The playbook does not create these networks, so make sure they already exist.
-forgejo_container_additional_networks: []
+forgejo_container_additional_networks: "{{ forgejo_container_additional_networks_auto + forgejo_container_additional_networks_custom }}"
+forgejo_container_additional_networks_auto: []
+# Use this to expose this container to a reverse proxy, which runs in a different container network.
+forgejo_container_additional_networks_custom: []
 
 # Additional environment variables.
 forgejo_environment_variables_additional_variables: ''
