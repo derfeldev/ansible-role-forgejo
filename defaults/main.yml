@@ -4,7 +4,7 @@ forgejo_enabled: true
 
 # Project source code URL: https://forgejo.org
 # renovate: datasource=docker depName=codeberg.org/forgejo/forgejo
-forgejo_version: 7.0.5
+forgejo_version: 7.0.6
 
 forgejo_identifier: forgejo
 
