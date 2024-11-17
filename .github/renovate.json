@@ -7,14 +7,19 @@
 		"sagat79"
 	],
 	"extends": [
-		"config:base"
+		"config:recommended"
 	],
 	"osvVulnerabilityAlerts": true,
 	"dependencyDashboardOSVVulnerabilitySummary": "all",
-	"addLabels": ["dependencies"],
-	"regexManagers": [
+	"addLabels": [
+		"dependencies"
+	],
+	"customManagers": [
 		{
-			"fileMatch": ["defaults/main.yml$"],
+			"customType": "regex",
+			"fileMatch": [
+				"defaults/main.yml$"
+			],
 			"matchStrings": [
 				"# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[a-z-0-9]+?))?\\s+[A-Za-z0-9_]+?(?:_version|_tag)\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
 			]
@@ -22,10 +27,10 @@
 	],
 	"packageRules": [
 		{
-			"matchSourceUrlPrefixes": [
-				"https://github.com/derfeldev"
-			],
-			"ignoreUnstable": false
+			"ignoreUnstable": false,
+			"matchSourceUrls": [
+				"https://github.com/derfeldev{/,}**"
+			]
 		}
 	]
 }
