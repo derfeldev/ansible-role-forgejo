@@ -18,9 +18,8 @@
     }
   ],
   "postUpdateOptions": ["tagPush"],
-  "git-tags": {
-    "enabled": true,
-    "format": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}"
+  "git": {
+    "tagFormat": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}"
   },
   "customManagers": [
     {
