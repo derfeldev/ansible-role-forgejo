@@ -10,15 +10,24 @@
   "automerge": true,
   "automergeType": "branch",
   "platformAutomerge": true,
-  "gitLabAutomerge": true,
   "packageRules": [
     {
-      "matchUpdateTypes": ["major", "minor", "patch"],
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
       "automerge": true,
-      "addLabels": ["dependency-update"]
+      "addLabels": [
+        "dependency-update"
+      ]
     },
     {
-      "matchDepTypes": ["dependencies", "devDependencies", "require"],
+      "matchDepTypes": [
+        "dependencies",
+        "devDependencies",
+        "require"
+      ],
       "commitMessagePrefix": "chore(deps):",
       "commitMessageAction": "update",
       "commitMessageTopic": "{{depName}}",
