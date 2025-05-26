@@ -17,10 +17,10 @@
       "automerge": true
     }
   ],
-  "postUpdateOptions": ["tagPush"],
-  "git": {
-    "tagFormat": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}"
-  },
+  "commitBody": "Automated by Renovate",
+  "semanticCommits": "disabled",
+  "commitMessageExtra": "to v{{newVersion}}",
+  "tagFormat": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}",
   "customManagers": [
     {
       "customType": "regex",
