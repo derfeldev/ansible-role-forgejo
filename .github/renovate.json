@@ -14,13 +14,17 @@
   "packageRules": [
     {
       "matchUpdateTypes": ["major", "minor", "patch"],
-      "automerge": true
+      "automerge": true,
+      "addLabels": ["dependency-update"],
+      "commitMessagePrefix": "chore(deps):",
+      "commitMessageAction": "update",
+      "commitMessageTopic": "{{depName}}",
+      "commitMessageExtra": "to {{newVersion}}",
+      "versioning": "semver"
     }
   ],
   "commitBody": "Automated by Renovate",
   "semanticCommits": "disabled",
-  "commitMessageExtra": "to v{{newVersion}}",
-  "tagFormat": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}",
   "customManagers": [
     {
       "customType": "regex",
