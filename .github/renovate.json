@@ -46,36 +46,5 @@
         "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[a-z-0-9]+?))?\\s+[A-Za-z0-9_]+?(?:_version|_tag)\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
       ]
     }
-  ],
-  "hostRules": [
-    {
-      "matchHost": "github.com",
-      "token": "{{secrets.GITHUB_TOKEN}}"
-    }
-  ],
-  "git-tags": true,
-  "major": {
-    "automerge": true
-  },
-  "minor": {
-    "automerge": true
-  },
-  "patch": {
-    "automerge": true
-  },
-  "prCreation": "immediate",
-  "stabilityDays": 0,
-  "dependencyDashboard": true,
-  "dependencyDashboardAutoclose": true,
-  "baseBranches": ["main"],
-  "enabledManagers": ["regex"],
-  "regexManagers": [
-    {
-      "fileMatch": ["^defaults/main\\.yml$"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-.]+?) depName=(?<depName>[^\\s]+?)(?: (?:lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[a-z-0-9]+?))?\\s+[A-Za-z0-9_]+?(?:_version|_tag)\\s*:\\s*[\"']?(?<currentValue>.+?)[\"']?\\s"
-      ],
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    }
   ]
 }
