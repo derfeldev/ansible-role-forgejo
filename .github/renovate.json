@@ -7,6 +7,21 @@
   "labels": [
     "dependencies"
   ],
+  "automerge": true,
+  "automergeType": "branch",
+  "platformAutomerge": true,
+  "gitLabAutomerge": true,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major", "minor", "patch"],
+      "automerge": true
+    }
+  ],
+  "postUpdateOptions": ["tagPush"],
+  "git-tags": {
+    "enabled": true,
+    "format": "v{{version}}-{{#if increment}}{{increment}}{{else}}0{{/if}}"
+  },
   "customManagers": [
     {
       "customType": "regex",
