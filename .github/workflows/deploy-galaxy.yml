@@ -3,7 +3,7 @@ name: Deploy to Ansible Galaxy
 on:
   push:
     tags:
-      - '*' # This workflow runs when any tag is pushed
+      - '*'
 
 jobs:
   deploy:
@@ -33,4 +33,5 @@ jobs:
       run: |
         ansible-galaxy role import \
           --api-key $GALAXY_TOKEN \
-          derfeldev.forgejo
+          derfeldev \
+          ansible-role-forgejo
