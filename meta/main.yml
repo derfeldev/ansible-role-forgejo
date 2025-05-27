@@ -2,7 +2,7 @@ galaxy_info:
   author: derfeldev
   company: DIMOV
   role_name: forgejo
-  namespace: mash
+  namespace: derfeldev
   description: Ansible role to install a Forgejo.
   platforms:
     - name: Debian
