@@ -1,0 +1,38 @@
+name: Deploy to Ansible Galaxy
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Ansible
+      run: pip install ansible
+
+    - name: Get tag version
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Publish to Ansible Galaxy
+      env:
+        GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
+      run: |
+        ansible-galaxy role import \
+          --api-key $GALAXY_TOKEN \
+          --tag ${{ steps.get_version.outputs.VERSION }} \
+          forgejo \
+          derfeldev
