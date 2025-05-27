@@ -1,5 +1,5 @@
 galaxy_info:
-  author: Pavel D.
+  author: derfeldev
   company: DIMOV
   role_name: forgejo
   namespace: mash
@@ -28,3 +28,5 @@ galaxy_info:
     - selfhosted
     - gitserver
     - linux
+name: forgejo
+
