@@ -176,15 +176,6 @@ forgejo_environment_variables_additional_variables: ''
 forgejo_config_security_install_lock: false
 forgejo_config_security_secret_key: ''
 forgejo_config_security_internal_token: ''
-forgejo_config_security_login_remember_days: 7
-forgejo_config_security_cookie_secure: false
-forgejo_config_security_cookie_httponly: true
-forgejo_config_security_cookie_samesite: lax
-forgejo_config_security_disable_gravatar: false
-forgejo_config_security_enable_captcha: false
-forgejo_config_security_captcha_type: image
-forgejo_config_security_captcha_recaptcha_secret: ''
-forgejo_config_security_captcha_recaptcha_site_key: ''
 
 # Mail settings
 forgejo_config_mail_enabled: false
@@ -196,18 +187,256 @@ forgejo_config_mail_from: ''
 forgejo_config_mail_use_tls: true
 forgejo_config_mail_use_ssl: false
 
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+forgejo_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Frame-Options` header which controls whether framing can happen.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+forgejo_http_header_frame_options: SAMEORIGIN
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+forgejo_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+forgejo_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permission-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
+forgejo_http_header_content_permission_policy: "{{ 'interest-cohort=()' if forgejo_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+forgejo_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if forgejo_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `forgejo_content_permission_policy`
+forgejo_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport_Security
+# - https://hstspreload.org/#opt-in
+# See: `forgejo_http_header_strict_transport_security`
+forgejo_hsts_preload_enabled: false
+
 # Logging configuration
-forgejo_config_log_level: Info
+forgejo_config_log_level: INFO
 forgejo_config_log_mode: console
 forgejo_config_log_file_path: ''
 
-# Backup settings
+# Monitoring and health check
+forgejo_health_check_enabled: true
+forgejo_health_check_path: /api/v1/version
+forgejo_health_check_timeout: 30
+
+# Backup configuration
 forgejo_backup_enabled: false
-forgejo_backup_path: '/data/forgejo/backup'
-forgejo_backup_retention_days: 7
+forgejo_backup_path: "{{ forgejo_base_path }}/backups"
+forgejo_backup_retention_days: 30
 forgejo_backup_include_attachments: true
 forgejo_backup_include_git_hooks: true
 forgejo_backup_include_lfs: true
+
+# Maintenance mode
+forgejo_maintenance_mode_enabled: false
+forgejo_maintenance_mode_message: "Site is under maintenance. Please check back later."
+
+# Performance and caching
+forgejo_config_cache_adapter: memory
+forgejo_config_cache_ttl: 3600
+forgejo_config_session_provider: memory
+forgejo_config_session_config: '{"provider":"memory","provider_config":"{\"idle_timeout\":3600,\"gc_interval\":60}"}'
+
+# Repository settings
+forgejo_config_repository_upload_max_size: 104857600
+forgejo_config_repository_upload_allowed_types: ''
+forgejo_config_repository_upload_max_files: 5
+
+# Webhook configuration
+forgejo_config_webhook_allowed_host_list: ''
+forgejo_config_webhook_deliver_timeout: 5
+forgejo_config_webhook_max_deliveries: 3
+
+# Integration settings
+forgejo_config_integration_enabled: true
+forgejo_config_integration_webhook_enabled: true
+forgejo_config_integration_webhook_secret: ''
+
+# User and organization settings
+forgejo_config_user_enable_email_notification: true
+forgejo_config_user_enable_webhook_notification: true
+forgejo_config_user_max_repo_creation: 10
+forgejo_config_user_max_creation: 10
+
+# Admin user configuration
+forgejo_config_admin_user_username: admin
+forgejo_config_admin_user_email: ''
+forgejo_config_admin_user_password: ''
+
+# Security and rate limiting
+forgejo_config_security_login_remember_days: 7
+forgejo_config_security_cookie_secure: true
+forgejo_config_security_cookie_httponly: true
+forgejo_config_security_cookie_samesite: lax
+
+# Rate limiting
+forgejo_config_rate_limit_enabled: true
+forgejo_config_rate_limit_requests_per_hour: 1000
+forgejo_config_rate_limit_burst: 100
+
+# SSH and Git configuration
+forgejo_config_ssh_minimum_key_sizes:
+  - rsa: 2048
+  - dsa: 1024
+  - ecdsa: 256
+  - ed25519: 256
+forgejo_config_ssh_authorized_keys_backup: true
+forgejo_config_ssh_authorized_keys_backup_dir: "{{ forgejo_base_path }}/ssh-keys-backup"
+
+# Git configuration
+forgejo_config_git_max_git_diff_lines: 1000
+forgejo_config_git_max_git_diff_line_character_count: 5000
+forgejo_config_git_max_git_diff_files: 100
+
+# Notification settings
+forgejo_config_notification_enabled: true
+forgejo_config_notification_email_enabled: true
+forgejo_config_notification_webhook_enabled: true
+forgejo_config_notification_slack_enabled: false
+forgejo_config_notification_slack_webhook_url: ''
+
+# Cron jobs configuration
+forgejo_config_cron_enabled: true
+forgejo_config_cron_update_mirrors: true
+forgejo_config_cron_repo_health_check: true
+forgejo_config_cron_check_repo_stats: true
+
+# Backup and maintenance settings
+forgejo_config_backup_enabled: false
+forgejo_config_backup_path: "{{ forgejo_base_path }}/backups"
+forgejo_config_backup_retention_days: 30
+forgejo_config_backup_include_attachments: true
+forgejo_config_backup_include_git_hooks: true
+forgejo_config_backup_include_lfs: true
+
+# Health check configuration
+forgejo_config_health_check_enabled: true
+forgejo_config_health_check_path: /api/v1/version
+forgejo_config_health_check_timeout: 30
+forgejo_config_health_check_interval: 60
+
+# LDAP configuration
+forgejo_config_ldap_enabled: false
+forgejo_config_ldap_host: ''
+forgejo_config_ldap_port: 389
+forgejo_config_ldap_bind_dn: ''
+forgejo_config_ldap_bind_password: ''
+forgejo_config_ldap_user_search_base: ''
+forgejo_config_ldap_user_filter: ''
+forgejo_config_ldap_admin_filter: ''
+
+# OAuth configuration
+forgejo_config_oauth_enabled: false
+forgejo_config_oauth_providers: []
+
+# API configuration
+forgejo_config_api_enabled: true
+forgejo_config_api_max_response_items: 50
+forgejo_config_api_default_paging_num: 30
+forgejo_config_api_max_paging_num: 100
+
+# Webhook advanced configuration
+forgejo_config_webhook_skip_tls_verify: false
+forgejo_config_webhook_deliver_timeout: 5
+forgejo_config_webhook_max_deliveries: 3
+forgejo_config_webhook_retry_after: 60
+
+# Repository management
+forgejo_config_repository_enable_timetracking: true
+forgejo_config_repository_enable_issues: true
+forgejo_config_repository_enable_pulls: true
+forgejo_config_repository_enable_wiki: true
+forgejo_config_repository_enable_external_tracker: false
+forgejo_config_repository_enable_external_wiki: false
+
+# Issue and pull request settings
+forgejo_config_issue_enable_dependencies: true
+forgejo_config_issue_enable_time_tracking: true
+forgejo_config_issue_enable_telemetry: false
+
+# Search and indexing
+forgejo_config_search_enabled: true
+forgejo_config_search_indexer_type: bleve
+forgejo_config_search_max_indexer_workers: 4
+forgejo_config_search_indexer_repo_batch_size: 10
+
+# Attachment settings
+forgejo_config_attachment_enabled: true
+forgejo_config_attachment_path: "{{ forgejo_base_path }}/attachments"
+forgejo_config_attachment_max_size: 104857600
+forgejo_config_attachment_allowed_types: ''
+
+# Mirror and federation
+forgejo_config_mirror_enabled: true
+forgejo_config_mirror_default_interval: 8
+forgejo_config_mirror_min_interval: 1
+forgejo_config_federation_enabled: true
+forgejo_config_federation_shared_public: false
+
+# LFS (Large File Storage) settings
+forgejo_config_lfs_enabled: true
+forgejo_config_lfs_path: "{{ forgejo_base_path }}/lfs"
+forgejo_config_lfs_max_file_size: 1073741824
+
+# Admin and system settings
+forgejo_config_admin_contact_name: ''
+forgejo_config_admin_contact_email: ''
+forgejo_config_system_notice: ''
+forgejo_config_system_notice_login: false
+forgejo_config_system_notice_login_only: false
+
+# Time and locale settings
+forgejo_config_time_format: '2006-01-02 15:04:05'
+forgejo_config_date_format: '2006-01-02'
+forgejo_config_default_ui_location: 'auto'
+
+# Security and monitoring
+forgejo_config_security_disable_gravatar: false
+forgejo_config_security_enable_captcha: false
+forgejo_config_security_captcha_type: image
+forgejo_config_security_captcha_recaptcha_secret: ''
+forgejo_config_security_captcha_recaptcha_site_key: ''
+
+# Metrics and monitoring
+forgejo_config_metrics_enabled: false
+forgejo_config_metrics_token: ''
+
+# Backup and maintenance
+forgejo_config_backup_auto_backup: false
+forgejo_config_backup_auto_backup_retention: 7
+forgejo_config_backup_auto_backup_time: '02:00'
+forgejo_config_backup_auto_backup_include_attachments: true
+forgejo_config_backup_auto_backup_include_git_hooks: true
+forgejo_config_backup_auto_backup_include_lfs: true
 
 # Performance and caching settings
 forgejo_config_cache_adapter: memory
@@ -222,118 +451,12 @@ forgejo_config_session_provider: memory
 forgejo_config_session_provider_config: ''
 forgejo_config_session_cookie_name: 'forgejo_session'
 
-# Repository settings
-forgejo_config_repository_upload_max_size: 3
-forgejo_config_repository_upload_allowed_types: ''
-forgejo_config_repository_upload_max_files: 5
-forgejo_config_repository_enable_timetracking: true
-forgejo_config_repository_enable_issues: true
-forgejo_config_repository_enable_pulls: true
-forgejo_config_repository_enable_wiki: true
-forgejo_config_repository_enable_external_tracker: false
-forgejo_config_repository_enable_external_wiki: false
-
-# Issue and pull request settings
-forgejo_config_issue_enable_dependencies: true
-forgejo_config_issue_enable_time_tracking: true
-forgejo_config_issue_enable_telemetry: false
-forgejo_config_issue_enable_assignee: true
-forgejo_config_issue_enable_labels: true
-
-# Search and indexing
-forgejo_config_search_enabled: true
-forgejo_config_search_indexer_type: bleve
-forgejo_config_search_max_indexer_workers: 4
-forgejo_config_search_indexer_repo_batch_size: 16
-
-# Attachment settings
-forgejo_config_attachment_enabled: true
-forgejo_config_attachment_path: '/data/forgejo/attachments'
-forgejo_config_attachment_max_size: 4
-forgejo_config_attachment_allowed_types: 'image/*,application/pdf,text/*'
-forgejo_config_attachment_max_files: 5
-
-# Git LFS settings
-forgejo_config_lfs_enabled: true
-forgejo_config_lfs_path: '/data/forgejo/lfs'
-forgejo_config_lfs_max_file_size: 100
-forgejo_config_lfs_storage_type: local
-
-# Federation settings
-forgejo_config_federation_enabled: true
-forgejo_config_federation_shared: false
-forgejo_config_federation_private: false
-forgejo_config_federation_limited: false
-
-# Mirror repository settings
-forgejo_config_mirror_enabled: true
-forgejo_config_mirror_interval: 8
-forgejo_config_mirror_timeout: 300
-forgejo_config_mirror_skip_tls_verify: false
-
-# Admin and system management settings
-forgejo_config_admin_username: admin
-forgejo_config_admin_email: admin@example.com
-forgejo_config_admin_password: ''
-forgejo_config_admin_confirm_password: ''
-
-# System notice settings
-forgejo_config_system_notice_enabled: false
-forgejo_config_system_notice_message: ''
-forgejo_config_system_notice_type: info
-
-# Time and locale settings
-forgejo_config_time_format: '2006-01-02 15:04:05'
-forgejo_config_date_format: '2006-01-02'
-forgejo_config_default_ui_location: 'auto'
-forgejo_config_default_theme: gitea
-
-# Gravatar and Captcha settings
-forgejo_config_gravatar_enabled: true
-forgejo_config_gravatar_source: gravatar
-forgejo_config_gravatar_url: 'https://www.gravatar.com/avatar/'
-
-# Captcha settings
-forgejo_config_captcha_enabled: false
-forgejo_config_captcha_type: image
-forgejo_config_captcha_recaptcha_secret: ''
-forgejo_config_captcha_recaptcha_site_key: ''
-forgejo_config_captcha_recaptcha_url: 'https://www.google.com/recaptcha/'
-
-# Metrics and monitoring settings
-forgejo_config_metrics_enabled: false
-forgejo_config_metrics_token: ''
-forgejo_config_metrics_interval: 60
-forgejo_config_metrics_timeout: 30
-
-# Backup and maintenance settings
-forgejo_config_backup_auto_backup_enabled: false
-forgejo_config_backup_auto_backup_retention_days: 7
-forgejo_config_backup_auto_backup_time: '02:00'
-forgejo_config_backup_auto_backup_include_attachments: true
-forgejo_config_backup_auto_backup_include_git_hooks: true
-forgejo_config_backup_auto_backup_include_lfs: true
-
-# Maintenance mode settings
-forgejo_config_maintenance_mode_enabled: false
-forgejo_config_maintenance_mode_message: 'Site is under maintenance. Please check back later.'
-forgejo_config_maintenance_mode_allow_webhooks: false
-forgejo_config_maintenance_mode_allow_api: false
-
-# Notification and webhook settings
-forgejo_config_notification_webhook_timeout: 5
-forgejo_config_notification_webhook_retry_after: 60
-forgejo_config_notification_webhook_max_deliveries: 3
-forgejo_config_notification_webhook_skip_tls_verify: false
-
-# Security and access control settings
+# Security and access control
 forgejo_config_security_enable_login_status: true
 forgejo_config_security_enable_login_source: true
 forgejo_config_security_enable_remember_me: true
-forgejo_config_security_enable_2fa: true
-forgejo_config_security_enable_oauth: true
-forgejo_config_security_enable_ldap: false
-forgejo_config_security_enable_saml: false
+forgejo_config_security_enable_captcha: false
+forgejo_config_security_enable_gravatar: true
 
 # User registration and access
 forgejo_config_user_enable_registration: true
@@ -341,7 +464,13 @@ forgejo_config_user_enable_captcha: false
 forgejo_config_user_enable_email_confirmation: false
 forgejo_config_user_enable_require_signin_view: false
 
-# Repository and issue management settings
+# Security and access control advanced settings
+forgejo_config_security_enable_2fa: true
+forgejo_config_security_enable_oauth: true
+forgejo_config_security_enable_ldap: false
+forgejo_config_security_enable_saml: false
+
+# Repository and issue management advanced settings
 forgejo_config_repository_enable_actions: true
 forgejo_config_repository_enable_packages: true
 forgejo_config_repository_enable_projects: true
@@ -413,8 +542,237 @@ forgejo_config_saml_sp_entity_id: ''
 forgejo_config_saml_certificate: ''
 forgejo_config_saml_private_key: ''
 
-# Rate limiting and API settings
+# Attachment and LFS settings
+forgejo_config_attachment_enabled: true
+forgejo_config_attachment_path: '/data/forgejo/attachments'
+forgejo_config_attachment_max_size: 4
+forgejo_config_attachment_allowed_types: 'image/*,application/pdf,text/*'
+forgejo_config_attachment_max_files: 5
+
+# Git LFS settings
+forgejo_config_lfs_enabled: true
+forgejo_config_lfs_path: '/data/forgejo/lfs'
+forgejo_config_lfs_max_file_size: 100
+forgejo_config_lfs_storage_type: local
+
+# Federation settings
+forgejo_config_federation_enabled: true
+forgejo_config_federation_shared: false
+forgejo_config_federation_private: false
+forgejo_config_federation_limited: false
+
+# Mirror repository settings
+forgejo_config_mirror_enabled: true
+forgejo_config_mirror_interval: 8
+forgejo_config_mirror_timeout: 300
+forgejo_config_mirror_skip_tls_verify: false
+
+# Admin and system management settings
+forgejo_config_admin_username: admin
+forgejo_config_admin_email: admin@example.com
+forgejo_config_admin_password: ''
+forgejo_config_admin_confirm_password: ''
+
+# System notice settings
+forgejo_config_system_notice_enabled: false
+forgejo_config_system_notice_message: ''
+forgejo_config_system_notice_type: info
+
+# Time and locale advanced settings
+forgejo_config_time_format: '2006-01-02 15:04:05'
+forgejo_config_date_format: '2006-01-02'
+forgejo_config_default_ui_location: 'auto'
+forgejo_config_default_theme: gitea
+
+# Gravatar and Captcha advanced settings
+forgejo_config_gravatar_enabled: true
+forgejo_config_gravatar_source: gravatar
+forgejo_config_gravatar_url: 'https://www.gravatar.com/avatar/'
+
+# Captcha advanced settings
+forgejo_config_captcha_enabled: false
+forgejo_config_captcha_type: image
+forgejo_config_captcha_recaptcha_secret: ''
+forgejo_config_captcha_recaptcha_site_key: ''
+forgejo_config_captcha_recaptcha_url: 'https://www.google.com/recaptcha/'
+
+# Metrics and monitoring advanced settings
+forgejo_config_metrics_enabled: false
+forgejo_config_metrics_token: ''
+forgejo_config_metrics_interval: 60
+forgejo_config_metrics_timeout: 30
+
+# Advanced backup and maintenance settings
+forgejo_config_backup_auto_backup_enabled: false
+forgejo_config_backup_auto_backup_retention_days: 7
+forgejo_config_backup_auto_backup_time: '02:00'
+forgejo_config_backup_auto_backup_include_attachments: true
+forgejo_config_backup_auto_backup_include_git_hooks: true
+forgejo_config_backup_auto_backup_include_lfs: true
+
+# Advanced maintenance mode settings
+forgejo_config_maintenance_mode_enabled: false
+forgejo_config_maintenance_mode_message: 'Site is under maintenance. Please check back later.'
+forgejo_config_maintenance_mode_allow_webhooks: false
+forgejo_config_maintenance_mode_allow_api: false
+
+# Advanced notification and webhook settings
+forgejo_config_notification_webhook_timeout: 5
+forgejo_config_notification_webhook_retry_after: 60
+forgejo_config_notification_webhook_max_deliveries: 3
+forgejo_config_notification_webhook_skip_tls_verify: false
+
+# Advanced mirror and repository settings
+forgejo_config_mirror_check_interval: 10
+forgejo_config_mirror_timeout: 300
+forgejo_config_mirror_skip_tls_verify: false
+
+# Advanced repository and issue management settings
+forgejo_config_repository_enable_actions: true
+forgejo_config_repository_enable_packages: true
+forgejo_config_repository_enable_projects: true
+forgejo_config_repository_enable_releases: true
+
+# Advanced security and access control settings
+forgejo_config_security_enable_2fa: true
+forgejo_config_security_enable_oauth: true
+forgejo_config_security_enable_ldap: false
+forgejo_config_security_enable_saml: false
+
+# Advanced user and admin management settings
+forgejo_config_user_enable_registration: true
+forgejo_config_user_enable_captcha: false
+forgejo_config_user_enable_email_confirmation: false
+forgejo_config_user_enable_require_signin_view: false
+
+# Advanced rate limiting and API settings
 forgejo_config_rate_limit_enabled: true
 forgejo_config_rate_limit_requests_per_minute: 60
 forgejo_config_rate_limit_burst: 100
 forgejo_config_rate_limit_window: 60
+
+# Advanced API settings
+forgejo_config_api_enable_swagger: true
+forgejo_config_api_max_response_items: 50
+forgejo_config_api_default_paging_num: 30
+forgejo_config_api_max_paging_num: 100
+
+# Advanced webhook and integration settings
+forgejo_config_webhook_deliver_timeout: 5
+forgejo_config_webhook_deliver_retry_after: 60
+forgejo_config_webhook_max_deliveries: 3
+forgejo_config_webhook_skip_tls_verify: false
+
+# Advanced SSH and Git settings
+forgejo_config_ssh_minimum_key_size: 2048
+forgejo_config_ssh_authorized_keys_backup: true
+forgejo_config_ssh_authorized_keys_backup_dir: '/data/ssh/authorized_keys_backup'
+forgejo_config_git_max_git_diff_lines: 1000
+forgejo_config_git_max_git_diff_line_character_limit: 5000
+forgejo_config_git_max_git_diff_files: 100
+
+# Advanced notification and cron job settings
+forgejo_config_notification_enable_email: true
+forgejo_config_notification_enable_webhook: true
+forgejo_config_notification_enable_slack: false
+forgejo_config_notification_slack_webhook_url: ''
+forgejo_config_notification_slack_channel: ''
+
+# Advanced cron job settings
+forgejo_config_cron_update_mirrors: '0 * * * *'
+forgejo_config_cron_repo_health_check: '0 0 * * *'
+forgejo_config_cron_check_repo_stats: '0 0 * * 0'
+forgejo_config_cron_clean_old_archives: '0 0 1 * *'
+
+# Advanced health check and monitoring settings
+forgejo_config_health_check_enabled: true
+forgejo_config_health_check_timeout: 30
+forgejo_config_health_check_interval: 60
+forgejo_config_health_check_retries: 3
+
+# Advanced LDAP integration settings
+forgejo_config_ldap_enabled: false
+forgejo_config_ldap_host: ''
+forgejo_config_ldap_port: 389
+forgejo_config_ldap_bind_dn: ''
+forgejo_config_ldap_bind_password: ''
+forgejo_config_ldap_search_base: ''
+forgejo_config_ldap_search_filter: ''
+forgejo_config_ldap_user_filter: ''
+forgejo_config_ldap_admin_filter: ''
+
+# Advanced OAuth integration settings
+forgejo_config_oauth_enabled: false
+forgejo_config_oauth_provider: ''
+forgejo_config_oauth_client_id: ''
+forgejo_config_oauth_client_secret: ''
+forgejo_config_oauth_redirect_uri: ''
+forgejo_config_oauth_scopes: ''
+
+# Advanced SAML integration settings
+forgejo_config_saml_enabled: false
+forgejo_config_saml_idp_metadata_url: ''
+forgejo_config_saml_idp_entity_id: ''
+forgejo_config_saml_sp_entity_id: ''
+forgejo_config_saml_certificate: ''
+forgejo_config_saml_private_key: ''
+
+# Advanced attachment and LFS settings
+forgejo_config_attachment_enabled: true
+forgejo_config_attachment_path: '/data/forgejo/attachments'
+forgejo_config_attachment_max_size: 4
+forgejo_config_attachment_allowed_types: 'image/*,application/pdf,text/*'
+forgejo_config_attachment_max_files: 5
+
+# Advanced Git LFS settings
+forgejo_config_lfs_enabled: true
+forgejo_config_lfs_path: '/data/forgejo/lfs'
+forgejo_config_lfs_max_file_size: 100
+forgejo_config_lfs_storage_type: local
+
+# Advanced federation settings
+forgejo_config_federation_enabled: true
+forgejo_config_federation_shared: false
+forgejo_config_federation_private: false
+forgejo_config_federation_limited: false
+
+# Advanced mirror repository settings
+forgejo_config_mirror_enabled: true
+forgejo_config_mirror_interval: 8
+forgejo_config_mirror_timeout: 300
+forgejo_config_mirror_skip_tls_verify: false
+
+# Advanced admin and system management settings
+forgejo_config_admin_username: admin
+forgejo_config_admin_email: admin@example.com
+forgejo_config_admin_password: ''
+forgejo_config_admin_confirm_password: ''
+
+# Advanced system notice settings
+forgejo_config_system_notice_enabled: false
+forgejo_config_system_notice_message: ''
+forgejo_config_system_notice_type: info
+
+# Advanced time and locale settings
+forgejo_config_time_format: '2006-01-02 15:04:05'
+forgejo_config_date_format: '2006-01-02'
+forgejo_config_default_ui_location: 'auto'
+forgejo_config_default_theme: gitea
+
+# Advanced Gravatar and Captcha settings
+forgejo_config_gravatar_enabled: true
+forgejo_config_gravatar_source: gravatar
+forgejo_config_gravatar_url: 'https://www.gravatar.com/avatar/'
+
+# Advanced Captcha settings
+forgejo_config_captcha_enabled: false
+forgejo_config_captcha_type: image
+forgejo_config_captcha_recaptcha_secret: ''
+forgejo_config_captcha_recaptcha_site_key: ''
+forgejo_config_captcha_recaptcha_url: 'https://www.google.com/recaptcha/'
+
+# Advanced maintenance mode settings
+forgejo_config_maintenance_mode_enabled: false
+forgejo_config_maintenance_mode_message: 'Site is under maintenance. Please check back later.'
+forgejo_config_maintenance_mode_allow_webhooks: false
+forgejo_config_maintenance_mode_allow_api: false

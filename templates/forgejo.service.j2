@@ -1,16 +1,23 @@
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 [Unit]
 Description=Forgejo ({{ forgejo_identifier }})
 {% for service in forgejo_systemd_required_systemd_services_list %}
 Requires={{ service }}
 After={{ service }}
 {% endfor %}
+{% for service in forgejo_systemd_wanted_systemd_services_list %}
+Wants={{ service }}
+{% endfor %}
 DefaultDependencies=no
 
 [Service]
 Type=simple
 Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ forgejo_identifier }} 2>/dev/null'
-ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ forgejo_identifier }} 2>/dev/null'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ forgejo_container_stop_grace_time_seconds }} {{ forgejo_identifier }} 2>/dev/null || true'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ forgejo_identifier }} 2>/dev/null || true'
 
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--rm \
@@ -34,8 +41,11 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--label-file={{ forgejo_base_path }}/labels \
 			--mount type=bind,src={{ forgejo_data_dir_path }},dst=/var/lib/gitea \
 			--mount type=bind,src={{ forgejo_config_dir_path }},dst=/etc/gitea \
+			{% for volume in forgejo_container_additional_volumes %}
+			--mount type={{ volume.type | default('bind' if '/' in volume.src else 'volume') }},src={{ volume.src }},dst={{ volume.dst }}{{ (',' + volume.options) if volume.options else '' }} \
+			{% endfor %}
 			--tmpfs=/tmp:rw,noexec,nosuid,size=128m \
-			{{ forgejo_container_image }}
+			{{ forgejo_container_image_self_build_name if forgejo_container_image_self_build else forgejo_container_image }}
 
 {% for network in forgejo_container_additional_networks %}
 ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ forgejo_identifier }}
@@ -43,8 +53,8 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network conne
 
 ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ forgejo_identifier }}
 
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ forgejo_identifier }} 2>/dev/null'
-ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ forgejo_identifier }} 2>/dev/null'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} stop -t {{ forgejo_container_stop_grace_time_seconds }} {{ forgejo_identifier }} 2>/dev/null || true'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ forgejo_identifier }} 2>/dev/null || true'
 Restart=always
 RestartSec=30
 SyslogIdentifier={{ forgejo_identifier }}

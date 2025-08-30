@@ -1,0 +1,42 @@
+---
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
+exclude_paths:
+  - .git/
+  - .github/
+  - .woodpecker.yml
+  - .pre-commit-config.yaml
+  - .yamllint.yml
+  - .editorconfig
+  - .gitignore
+  - .codespellrc
+  - .dockerignore
+  - .DS_Store
+  - LICENSE
+  - LICENSES/
+  - REUSE.toml
+  - renovate.json
+  - justfile
+  - Makefile
+  - Dockerfile
+  - flake.lock
+  - flake.nix
+  - conf.py
+  - requirements.txt
+  - requirements.yml
+  - setup.yml
+  - ansible.cfg
+  - CHANGELOG.md
+  - README.md
+  - VERSIONS.md
+  - bin/
+  - docs/
+  - examples/
+  - group_vars/
+  - inventory/
+  - roles/
+  - run/
+  - templates/
+  - meta/
+  - collections/

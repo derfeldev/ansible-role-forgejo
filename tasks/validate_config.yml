@@ -1,4 +1,7 @@
 ---
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
 
 - name: Fail if required Forgejo settings not defined
   ansible.builtin.fail:
@@ -13,7 +16,8 @@
     - forgejo_config_database_username
     - forgejo_config_database_password
 
-- when: forgejo_container_labels_traefik_enabled | bool
+- name: Validate Forgejo Traefik configuration
+  when: forgejo_container_labels_traefik_enabled | bool
   block:
     - name: Fail if required Forgejo Traefik settings not defined
       ansible.builtin.fail:
@@ -32,3 +36,17 @@
         msg: >-
           forgejo_container_labels_traefik_path_prefix (`{{ forgejo_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/forgejo`).
       when: "forgejo_container_labels_traefik_path_prefix != '/' and forgejo_container_labels_traefik_path_prefix[-1] == '/'"
+
+- name: Validate Forgejo container image self-build configuration
+  when: forgejo_container_image_self_build | bool
+  block:
+    - name: Fail if required Forgejo self-build settings not defined
+      ansible.builtin.fail:
+        msg: >-
+          You need to define a required configuration setting (`{{ item }}`) for self-building the container image.
+      when: "vars[item] == ''"
+      with_items:
+        - forgejo_container_image_self_build_repo
+        - forgejo_container_image_self_build_repo_version
+        - forgejo_container_image_self_build_dockerfile
+        - forgejo_container_image_self_build_src_files_path

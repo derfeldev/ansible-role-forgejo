@@ -1,4 +1,7 @@
 ---
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
 
 - name: Ensure Forgejo paths exist
   ansible.builtin.file:
@@ -12,35 +15,147 @@
     - "{{ forgejo_data_dir_path }}"
     - "{{ forgejo_config_dir_path }}"
 
+- name: Ensure Forgejo self-build source path exists
+  when: forgejo_container_image_self_build | bool
+  ansible.builtin.file:
+    path: "{{ forgejo_container_image_self_build_src_files_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+
+- name: Ensure Forgejo backup path exists
+  when: forgejo_backup_enabled | bool
+  ansible.builtin.file:
+    path: "{{ forgejo_backup_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+
+- name: Ensure Forgejo SSH keys backup path exists
+  when: forgejo_config_ssh_authorized_keys_backup | bool
+  ansible.builtin.file:
+    path: "{{ forgejo_config_ssh_authorized_keys_backup_dir }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+
+- name: Ensure Forgejo attachment path exists
+  when: forgejo_config_attachment_enabled | bool
+  ansible.builtin.file:
+    path: "{{ forgejo_config_attachment_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+
+- name: Ensure Forgejo LFS path exists
+  when: forgejo_config_lfs_enabled | bool
+  ansible.builtin.file:
+    path: "{{ forgejo_config_lfs_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ forgejo_uid }}"
+    group: "{{ forgejo_gid }}"
+
 - name: Ensure Forgejo support files created
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ forgejo_base_path }}/{{ item }}"
     owner: "{{ forgejo_uid }}"
     group: "{{ forgejo_gid }}"
-    mode: 0640
+    mode: "0o640"
   with_items:
     - env
     - labels
 
-- name: Ensure Forgejo container image is pulled
-  community.docker.docker_image:
-    name: "{{ forgejo_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ forgejo_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else forgejo_container_image_force_pull }}"
+- name: Run if self-building of Forgejo container image is not enabled
+  when: "not forgejo_container_image_self_build | bool"
+  block:
+    - name: Ensure Forgejo container image is pulled via community.docker.docker_image
+      when: devture_systemd_docker_base_container_image_pull_method == 'ansible-module'
+      community.docker.docker_image:
+        name: "{{ forgejo_container_image }}"
+        source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+        force_source: "{{ forgejo_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else forgejo_container_image_force_pull }}"
+      register: result
+      retries: "{{ devture_playbook_help_container_retries_count }}"
+      delay: "{{ devture_playbook_help_container_retries_delay }}"
+      until: result is not failed
+
+    - name: Ensure Forgejo container image is pulled via ansible.builtin.command
+      when: devture_systemd_docker_base_container_image_pull_method == 'command'
+      ansible.builtin.command:
+        cmd: "{{ devture_systemd_docker_base_host_command_docker }} pull {{ forgejo_container_image }}"
+      register: result
+      retries: "{{ devture_playbook_help_container_retries_count }}"
+      delay: "{{ devture_playbook_help_container_retries_delay }}"
+      until: result is not failed
+      changed_when: "'Downloaded newer image' in result.stdout"
+
+- name: Run if self-building of Forgejo container image is enabled
+  when: forgejo_container_image_self_build | bool
+  block:
+    - name: Ensure Forgejo repository is present on self-build
+      ansible.builtin.git:
+        repo: "{{ forgejo_container_image_self_build_repo }}"
+        version: "{{ forgejo_container_image_self_build_repo_version }}"
+        dest: "{{ forgejo_container_image_self_build_src_files_path }}"
+        force: "yes"
+      register: forgejo_git_pull_results
+
+    - name: Ensure Forgejo container image is built
+      community.docker.docker_image:
+        name: "{{ forgejo_container_image_self_build_name }}"
+        source: build
+        force_source: "{{ forgejo_git_pull_results.changed if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else forgejo_git_pull_results.changed }}"
+        build:
+          dockerfile: "{{ forgejo_container_image_self_build_dockerfile }}"
+          path: "{{ forgejo_container_image_self_build_src_files_path }}"
+          pull: true
+
+- name: Ensure Forgejo container network is created via community.docker.docker_network
+  when: devture_systemd_docker_base_container_network_creation_method == 'ansible-module'
+  community.docker.docker_network:
+    enable_ipv6: "{{ devture_systemd_docker_base_ipv6_enabled }}"
+    name: "{{ forgejo_container_network }}"
+    driver: bridge
+    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options }}"
+
+- name: Ensure Forgejo container network is created via ansible.builtin.command
+  when: devture_systemd_docker_base_container_network_creation_method == 'command'
+  ansible.builtin.command:
+    cmd: >-
+      {{ devture_systemd_docker_base_host_command_docker }} network create
+      {% if devture_systemd_docker_base_ipv6_enabled %}--ipv6{% endif %}
+      --driver bridge
+      {% if devture_systemd_docker_base_container_networks_driver_options %}
+      {% for key, value in devture_systemd_docker_base_container_networks_driver_options.items() %}
+      --opt {{ key }}={{ value }}
+      {% endfor %}
+      {% endif %}
+      {{ forgejo_container_network }}
   register: result
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: result is not failed
+  changed_when: "'Created' in result.stdout or 'already exists' in result.stderr"
 
-- name: Ensure Forgejo container network is created
-  community.general.docker_network:
-    name: "{{ forgejo_container_network }}"
-    driver: bridge
-
-- name: Ensure Forgejo systemd service installed
+- name: Ensure Forgejo systemd service is installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/forgejo.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ forgejo_identifier }}.service"
-    mode: 0640
+    mode: "0o640"
+  register: forgejo_systemd_service_file
+
+- name: Ensure Forgejo systemd service is enabled and started
+  ansible.builtin.systemd:
+    name: "{{ forgejo_identifier }}"
+    state: started
+    enabled: true
+    daemon_reload: "{{ forgejo_systemd_service_file.changed }}"
+  register: forgejo_systemd_service_started

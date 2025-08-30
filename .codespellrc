@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[codespell]
+ignore-words-list = aNULL,brose,re-use,re-used,inout

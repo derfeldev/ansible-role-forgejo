@@ -1,3 +1,6 @@
+<!-- SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79> -->
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+
 # Forgejo Ansible Role
 
 This is an [Ansible](https://www.ansible.com/) role which installs [Forgejo](https://forgejo.org) to run as a [Docker](https://www.docker.com/) container wrapped in a systemd service.
@@ -14,6 +17,7 @@ This role *implicitly* depends on:
 - [`com.devture.ansible.role.systemd_docker_base`](https://github.com/devture/com.devture.ansible.role.systemd_docker_base)
 
 ## Configuring this role for your playbook
+
 ```yaml
 forgejo_enabled: true
 ```

@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# REUSE configuration file
+# See: https://reuse.software/spec/
+
+version = 1
+
+[project]
+name = "ansible-role-forgejo"
+copyright = "2025 Pavel Dimov <@sagat79>"
+
+[project.license]
+CC0-1.0 = "https://creativecommons.org/publicdomain/zero/1.0/"
+
+[project.contact]
+name = "Pavel Dimov"
+email = "@sagat79"

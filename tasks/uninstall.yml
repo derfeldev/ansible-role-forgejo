@@ -1,11 +1,15 @@
 ---
+# SPDX-FileCopyrightText: 2025 Pavel Dimov <@sagat79>
+#
+# SPDX-License-Identifier: CC0-1.0
 
 - name: Check existence of Forgejo systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ forgejo_identifier }}.service"
   register: forgejo_service_stat
 
-- when: forgejo_service_stat.stat.exists | bool
+- name: Uninstall Forgejo when service exists
+  when: forgejo_service_stat.stat.exists | bool
   block:
     - name: Ensure Forgejo systemd service is stopped
       ansible.builtin.service:
